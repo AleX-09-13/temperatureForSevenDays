@@ -88,3 +88,5 @@ fetchWeatherData(6).then((tempC) => {
   const cell73 = document.getElementById('cell73');
   cell73.innerText = `${tempC}`;
 });
+
+// ****
