@@ -13,7 +13,6 @@ async function fetchWeatherData(x) {
       throw new Error(`HTTP error ${response.status}`);
     }
     const data = await response.json();
-    console.log(data.daily.precipitation_sum[x]);
 
     let emoji = emojiM;
     switch (true) {
@@ -34,7 +33,6 @@ async function fetchWeatherData(x) {
       data.daily.temperature_2m_max[x]
     )} ${emoji}`;
 
-    console.log(tempC);
     return tempC;
   } catch (error) {
     console.error('Ошибка:, error');
