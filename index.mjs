@@ -1,92 +1,82 @@
-import { dataNamber } from './01data.js';
-import { dayName } from './02dayName.js';
-import fetchWeatherData from './03temp.mjs';
+const serverURL =
+  'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&temperature_unit=fahrenheit&timezone=Europe%2FMoscow&forecast_days=14';
 
-//Получаем дату в первой колонке
-const data = dataNamber;
+async function fetchAndProcessData() {
+  try {
+    let response = await fetch(serverURL);
+    const data = await response.json();
+    const daily = data.daily;
+    console.log(daily);
+    const emojiM = ['🌞', '⛅', '💧'];
 
-let cell11 = document.getElementById('cell11');
-cell11.innerHTML = `${data(0)}`;
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
 
-const cell21 = document.getElementById('cell21');
-cell21.innerHTML = `${data(1)}`;
+    const trh = document.createElement('tr');
+    const th = document.createElement('td');
+    th.colSpan = 3;
+    th.textContent = 'Погода на ближайшие 10 дней';
+    th.style.textAlign = 'center';
+    th.style.border = '1px black solid';
+    trh.appendChild(th);
+    table.appendChild(trh);
 
-const cell31 = document.getElementById('cell31');
-cell31.innerHTML = `${data(2)}`;
+    for (let i = 0; i < 10; i++) {
+      const tr = document.createElement('tr');
+      const tempF =
+        (data.daily.temperature_2m_max[i] + data.daily.temperature_2m_min[i]) /
+        2;
+      const sign = tempF > 32 ? '+' : '-';
+      const tempC = (((tempF - 32) * 5) / 9).toFixed(1);
+      const [year, month, day] = data.daily.time[i].split('-');
+      const dayN = parseInt(day);
+      const monthN = parseInt(month);
+      let emoji;
+      if (data.daily.precipitation_sum[i] === 0) {
+        emoji = emojiM[0];
+      } else if (data.daily.precipitation_sum[i] >= 2) {
+        emoji = emojiM[2];
+      } else {
+        emoji = emojiM[1];
+      }
 
-const cell41 = document.getElementById('cell41');
-cell41.innerHTML = `${data(3)}`;
+      function getDayOfWeek(dateString) {
+        const daysOfWeek = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+        const date = new Date(dateString);
+        const dayIndex = date.getDay();
+        return daysOfWeek[dayIndex];
+      }
 
-const cell51 = document.getElementById('cell51');
-cell51.innerHTML = `${data(4)}`;
+      let daysOfWeek = getDayOfWeek(data.daily.time[i]);
 
-const cell61 = document.getElementById('cell61');
-cell61.innerHTML = `${data(5)}`;
+      for (let j = 0; j < 3; j++) {
+        const td = document.createElement('td');
+        td.style.border = '1px black dashed';
+        td.style.width = '90px';
+        td.style.textAlign = 'center';
 
-const cell71 = document.getElementById('cell71');
-cell71.innerHTML = `${data(6)}`;
+        if (j === 0) {
+          td.textContent = `${dayN}.${monthN}`;
+        } else if (j === 1) {
+          td.textContent = `${daysOfWeek}`;
+          if (daysOfWeek === 'сб' || daysOfWeek === 'вс') {
+            td.style.color = 'red';
+          } else if (daysOfWeek !== 'сб' || daysOfWeek !== 'вс') {
+            td.style.color = 'gray';
+          }
+        } else if (j === 2) {
+          td.textContent = `${sign}${tempC} ${emoji}`;
+        } else {
+          td.textContent = '';
+        }
 
-//***
-
-//Получаем названия дней во второй колонке
-const nameDay = dayName;
-
-const cell12 = document.getElementById('cell12');
-cell12.innerText = `${nameDay(6)}`;
-
-const cell22 = document.getElementById('cell22');
-cell22.innerText = `${nameDay(0)}`;
-
-const cell32 = document.getElementById('cell32');
-cell32.innerText = `${nameDay(1)}`;
-
-const cell42 = document.getElementById('cell42');
-cell42.innerText = `${nameDay(2)}`;
-
-const cell52 = document.getElementById('cell52');
-cell52.innerText = `${nameDay(3)}`;
-
-const cell62 = document.getElementById('cell62');
-cell62.innerText = `${nameDay(4)}`;
-
-const cell72 = document.getElementById('cell72');
-cell72.innerText = `${nameDay(5)}`;
-//***
-
-//Получаем температуру в третьей колонке
-fetchWeatherData(0).then((tempC) => {
-  const cell13 = document.getElementById('cell13');
-  cell13.innerText = `${tempC}`;
-});
-
-fetchWeatherData(1).then((tempC) => {
-  const cell23 = document.getElementById('cell23');
-  cell23.innerText = `${tempC}`;
-});
-
-fetchWeatherData(2).then((tempC) => {
-  const cell33 = document.getElementById('cell33');
-  cell33.innerText = `${tempC}`;
-});
-
-fetchWeatherData(3).then((tempC) => {
-  const cell43 = document.getElementById('cell43');
-  cell43.innerText = `${tempC}`;
-});
-
-fetchWeatherData(4).then((tempC) => {
-  const cell53 = document.getElementById('cell53');
-  cell53.innerText = `${tempC}`;
-});
-
-fetchWeatherData(5).then((tempC) => {
-  const cell63 = document.getElementById('cell63');
-  cell63.innerText = `${tempC}`;
-});
-
-fetchWeatherData(6).then((tempC) => {
-  const cell73 = document.getElementById('cell73');
-  cell73.innerText = `${tempC}`;
-});
-
-// ****
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    document.body.appendChild(table);
+  } catch (error) {
+    console.error('Ошибка при получении данных:', error);
+  }
+}
+fetchAndProcessData();
